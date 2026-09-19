@@ -1,0 +1,97 @@
+# Network Battleship
+
+Network Battleship is a two-player command-line Battleship game played over a network. It follows the basic rules of Battleship but adds hidden power-ups that introduce additional strategy.
+
+## Game Rules
+
+### Player Roles
+- Two players connect to the game over the network.
+- Each player has their own grid.
+- Players place their ships before the game begins.
+- Players also secretly place power-ups around their own grid.
+- Neither player can see the opponent's ship or power-up locations.
+
+### Turns
+- Players alternate turns.
+- During a normal turn, a player selects a coordinate on the opponent's grid to attack.
+- The game reports whether the attack was a hit, miss, or discovered power-up.
+- If a player discovers a power-up, it is added to their inventory.
+- Power-ups can be saved and used on a later turn.
+
+## Hidden Power-Ups
+
+Power-ups are placed around each player's own board before the game starts. However, the power-ups are actually rewards for the opponent.
+
+If the opponent attacks a square containing a power-up, they acquire that power-up and can save it for later use.
+
+### Nuke
+- The Nuke attacks five squares in a plus-sign pattern.
+- The player chooses the center coordinate.
+- The center, left, right, above, and below squares are attacked.
+
+Example:
+
+      X
+    X X X
+      X
+
+### EMP
+- The EMP disables the opponent for one turn.
+- The EMP can be activated without using the player's normal attack.
+- After activating the EMP, the player can still attack normally during the same turn.
+- The opponent then skips their next turn.
+
+### Radar
+- The player selects a 3x3 area of the opponent's board.
+- The game reports how many ship squares are located within that area.
+- The exact ship locations are not revealed.
+
+### Shield
+- The Shield can protect one ship square from an incoming attack.
+- If the protected square is attacked, the attack is blocked.
+- The Shield is removed after blocking one attack.
+
+### Extra Shot
+- The Extra Shot allows the player to make two attacks instead of one during a turn.
+
+## Power-Up Inventory
+
+Power-ups do not have to be used immediately after they are discovered.
+
+When a player discovers a power-up, it is stored in their inventory. On a later turn, the player can choose between making a normal attack or using one of their available power-ups.
+
+Example:
+
+    Your Turn
+
+    1. Fire
+    2. Use Power-Up
+
+    Power-Up Inventory:
+    - Nuke
+    - Radar
+
+## Victory Condition
+
+A player wins when all of the opponent's ships have been completely destroyed.
+
+Power-ups do not need to be discovered or destroyed to win the game.
+
+## Draw / Tie Condition
+
+Under normal gameplay, there is no draw because players continue alternating turns until one player's entire fleet has been destroyed.
+
+## Networking
+
+The game will use a client/server architecture to allow two players to play from separate machines over a network.
+
+The server will maintain the game state and communicate player actions between the two clients.
+
+
+## DNS Configuration
+
+The authoritative DNS domain name for the game server will be:
+
+    server.shakin.edu
+
+Clients will use this domain name to locate and connect to the Battleship game server.
