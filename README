@@ -18,6 +18,41 @@ Network Battleship is a two-player command-line Battleship game played over a ne
 - If a player discovers a power-up, it is added to their inventory.
 - Power-ups can be saved and used on a later turn.
 
+### Turn Costs and Power-Up Use
+- A player may activate at most one power-up per turn.
+- A normal attack targets one square and ends the turn.
+- Nuke replaces the normal attack with a plus-sign attack and ends
+  the turn.
+- Radar replaces the normal attack with a scan and ends the turn.
+- Shield replaces the normal attack by protecting one of the player's
+  own unhit ship squares and ends the turn.
+- Extra Shot replaces the normal attack with two attacks at different
+  coordinates. The turn ends after the second attack.
+- EMP does not consume the normal attack. After activating EMP, the
+  player makes one normal attack, and the opponent skips their next
+  turn. The player cannot activate another power-up that turn.
+- If an attack destroys the opponent's final remaining ship square,
+  the game ends immediately, even if an extra attack remains.
+
+### Targeting Rules
+- Invalid actions do not consume a turn or a power-up.
+- Normal attacks cannot target a square already resolved as a hit,
+  miss, or collected power-up.
+- A blocked attack consumes the Shield but leaves the ship square
+  undamaged. That square may be attacked again on a later turn.
+- Nuke targets a center square and its four immediate neighbors.
+  Squares outside the board or already resolved are ignored.
+  At least one target square must remain attackable.
+- Each power-up square hit by Nuke is collected normally.
+- Radar uses a center coordinate whose full 3 × 3 area must fit
+  inside the board. Its center row and column must therefore be 1–6.
+- Radar reports the number of undestroyed enemy ship squares in
+  that area, including shielded squares, without revealing locations.
+- Shield may only target an unhit, unshielded square of the player's
+  own ship.
+- Extra Shot attacks are processed separately. An invalid second
+  target may be retried without losing the remaining attack.
+
 ## Hidden Power-Ups
 
 Power-ups are placed around each player's own board before the game starts. However, the power-ups are actually rewards for the opponent.
@@ -56,7 +91,8 @@ Example:
 
 ## Power-Up Inventory
 
-Power-ups do not have to be used immediately after they are discovered.
+On a later turn, the player may use a stored power-up according to
+the Turn Costs and Power-Up Use rules above.
 
 When a player discovers a power-up, it is stored in their inventory. On a later turn, the player can choose between making a normal attack or using one of their available power-ups.
 
@@ -95,3 +131,24 @@ The authoritative DNS domain name for the game server will be:
     server.shakin.edu
 
 Clients will use this domain name to locate and connect to the Battleship game server.
+
+### Board and Fleet
+- Each player has an 8 × 8 grid.
+- Row and column coordinates range from 0 to 7.
+- Each player places three ships: one 2-square ship, one 3-square
+  ship, and one 4-square ship.
+- Ships must be placed horizontally or vertically.
+- Ships cannot overlap or extend outside the grid.
+- Each fleet occupies 9 squares total.
+- A player wins by destroying all 9 of the opponent's ship squares.
+
+### Power-Up Placement
+- Each player places five hidden power-ups: one Nuke, one EMP,
+  one Radar, one Shield, and one Extra Shot.
+- Each power-up occupies one square.
+- Power-ups cannot overlap ships or other power-ups.
+- All placements must be within the 8 × 8 grid.
+- When an opponent attacks a power-up square, the opponent collects
+  it and the power-up is removed from the board.
+- Each collected power-up can be used only once and cannot be used
+  during the same turn it was collected.
