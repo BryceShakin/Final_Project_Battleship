@@ -24,7 +24,7 @@ Every row also includes the common msg_type and timestamp fields.
 | LOBBY_WAIT | Server → Client | player_id; status: string "waiting for player 2"; no payload |
 | GAME_START | Server → Client | player_id; payload.role: string PLAYER_1 or PLAYER_2 |
 | MOVE | Client → Server | player_id; payload as defined under MOVE Actions |
-| STATE_UPDATE | Server → Client | player_id; payload.board_state, player_1_score, player_2_score, active_player |
+| STATE_UPDATE | Server → Client | player_id; payload.phase, role, setup_accepted, board_state, inventory, usable_powerups, player_1_score, player_2_score, active_player, attacks_remaining, radar_result |
 | ERROR | Server → Client | payload.error_message: code string; payload.message: explanatory string |
 | DISCONNECT | Client → Server | payload.reason: string "QUIT" |
 | GAME_OVER | Server → Clients | payload.outcome, winner, player_1_score, player_2_score; forfeiting_player for FORFEIT only |
