@@ -120,3 +120,24 @@ This prevents a disconnect from interrupting a partially applied move.
 
 The disconnect transitions on ActiveGame apply to all states inside it.
 Once a final outcome is recorded, later disconnects do not change it.
+
+## Socket Termination Detection and Cleanup
+
+- If recv() returns b"", the server has reached EOF: the peer has
+  closed its sending side. The server exits the receive loop and
+  triggers disconnect handling instead of repeatedly calling recv().
+
+- The server catches ConnectionResetError, BrokenPipeError,
+  ConnectionAbortedError, and TimeoutError during socket reads and
+  writes, then triggers disconnect handling.
+
+- A network drop may not produce an immediate error. The server uses
+  its configured connection-liveness timeout to detect an unresponsive
+  connection.
+
+- Disconnect handling closes the affected socket, clears its receive
+  buffer, and releases the player's connection resources.
+
+- Cleanup runs only once per connection. Repeated EOF notifications,
+  errors, or timeouts do not create additional forfeits or change an
+  outcome that has already been recorded.
