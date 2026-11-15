@@ -163,6 +163,8 @@ def create_test_placement():
     }
 
 
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Battleship TCP Game Client"

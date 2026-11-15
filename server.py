@@ -31,9 +31,7 @@ def handle_client(client_socket, selector, players):
         data = client_socket.recv(4096)
 
         if not data:
-            print("[DISCONNECTED] Client closed connection")
-            selector.unregister(client_socket)
-            client_socket.close()
+            disconnect_client(client_socket, selector, players)
             return
 
         # Retrieve this client's receive buffer
@@ -185,23 +183,40 @@ def handle_client(client_socket, selector, players):
                         "INVALID_ACTION",
                         "Unknown or unsupported action"
                     )
+            
+            elif message.get("msg_type") == "DISCONNECT":
+                if (
+                    set(message) != {"msg_type", "timestamp", "payload"}
+                    or type(message.get("timestamp")) is not int
+                    or message["timestamp"] < 0
+                    or message.get("payload") != {"reason": "QUIT"}
+                ):
+                    send_error(
+                        client_socket,
+                        selector,
+                        "MALFORMED_MESSAGE",
+                        "Invalid DISCONNECT message"
+                    )
+                    continue
+
+                disconnect_client(client_socket, selector, players)
+                return
+
 
 
             
 
 
     
+
     except BlockingIOError:
-    # No data available yet; keep the connection open
+        # No data available yet
         return
 
     except OSError as error:
         print(f"[ERROR] Client connection: {error}")
-        try:
-            selector.unregister(client_socket)
-        except (KeyError, ValueError):
-            pass
-        client_socket.close()
+        disconnect_client(client_socket, selector, players)
+
 
 
 def queue_message(client_socket, selector, message):
@@ -222,7 +237,7 @@ def queue_message(client_socket, selector, message):
 
 
 
-def write_client(client_socket, selector):
+def write_client(client_socket, selector, players):
     """Send queued messages when the socket is writable."""
     try:
         connection = selector.get_key(client_socket).data
@@ -248,16 +263,14 @@ def write_client(client_socket, selector):
                 data=connection
             )
 
+    
     except BlockingIOError:
         return
 
     except OSError as error:
         print(f"[ERROR] Sending to client: {error}")
-        try:
-            selector.unregister(client_socket)
-        except (KeyError, ValueError):
-            pass
-        client_socket.close()
+        disconnect_client(client_socket, selector, players)
+
 
 
 
@@ -1527,6 +1540,81 @@ def handle_shield(client_socket, selector, players, message):
 
 
 
+def disconnect_client(client_socket, selector, players):
+    """Clean up a player and handle a possible forfeit."""
+    try:
+        connection = selector.get_key(client_socket).data
+    except (KeyError, ValueError):
+        return
+
+    if connection.get("closed", False):
+        return
+
+    connection["closed"] = True
+    player_id = connection.get("player_id")
+    role = connection.get("role")
+
+    # Determine whether a two-player match exists
+    was_full = client_socket in players and len(players) == 2
+
+    opponent_socket = next(
+        (sock for sock in players if sock is not client_socket),
+        None
+    ) if was_full else None
+
+    if client_socket in players:
+        players.remove(client_socket)
+
+    match = connection.get("match")
+
+    if opponent_socket is not None:
+        try:
+            opponent = selector.get_key(opponent_socket).data
+        except (KeyError, ValueError):
+            opponent = None
+
+        if opponent is not None:
+            opponent["match_finished"] = True
+
+            # Do not overwrite an already completed game
+            if match is None or match["phase"] != "GAME_OVER":
+                if match is not None:
+                    match["phase"] = "GAME_OVER"
+                    score1 = match["player_1_score"]
+                    score2 = match["player_2_score"]
+                else:
+                    score1 = 0
+                    score2 = 0
+
+                print(f"[FORFEIT] {player_id} disconnected")
+
+                game_over = {
+                    "msg_type": "GAME_OVER",
+                    "timestamp": int(time.time()),
+                    "payload": {
+                        "outcome": "FORFEIT",
+                        "winner": opponent["role"],
+                        "forfeiting_player": role,
+                        "player_1_score": score1,
+                        "player_2_score": score2
+                    }
+                }
+
+                queue_message(
+                    opponent_socket, selector, game_over
+                )
+
+    try:
+        selector.unregister(client_socket)
+    except (KeyError, ValueError):
+        pass
+
+    client_socket.close()
+    print(f"[DISCONNECTED] {player_id or 'Unregistered client'}")
+
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -1589,7 +1677,7 @@ def main():
                     mask & selectors.EVENT_WRITE
                     and client_socket.fileno() != -1
                 ):
-                    write_client(client_socket, selector)
+                    write_client(client_socket, selector, players)
 
 
     except KeyboardInterrupt:
