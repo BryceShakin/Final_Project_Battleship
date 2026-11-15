@@ -3,7 +3,7 @@
 
 I decided to choose Option B, non-blocking I/O multiplexing, using python selectors moduele.
 
-The server will use a single event loop to manage multiple client connections. Each client socket will be set to non-blocking mode using setblocking(false).
+The server will use a single event loop to manage multiple client connections. Each client socket will be set to non-blocking mode using setblocking(False).
 
 The selectors module will monitor the sockets and notify the server when a client is ready to send or recieve data. This allows the server to communicate with both players without waiting for one player to respond
 
